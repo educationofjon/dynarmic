@@ -93,7 +93,7 @@ A32EmitX64::A32EmitX64(BlockOfCode& code, A32::UserConfig conf, A32::Jit* jit_in
 
 A32EmitX64::~A32EmitX64() = default;
 
-A32EmitX64::BlockDescriptor A32EmitX64::Emit(IR::Block& block) {
+CodePtr A32EmitX64::Emit(IR::Block& block) {
     code.EnableWriting();
     SCOPE_EXIT { code.DisableWriting(); };
 
@@ -163,7 +163,8 @@ A32EmitX64::BlockDescriptor A32EmitX64::Emit(IR::Block& block) {
     const auto range = boost::icl::discrete_interval<u32>::closed(descriptor.PC(), end_location.PC() - 1);
     block_ranges.AddRange(range, descriptor);
 
-    return RegisterBlock(descriptor, entrypoint, entrypoint_far, size);
+    RegisterBlock(descriptor, entrypoint, entrypoint_far, size);
+    return entrypoint;
 }
 
 void A32EmitX64::ClearCache() {
@@ -1151,7 +1152,7 @@ void A32EmitX64::EmitTerminalImpl(IR::Term::LinkBlock terminal, IR::LocationDesc
 
         patch_information[terminal.next].jg.emplace_back(code.getCurr());
         if (const auto next_bb = GetBasicBlock(terminal.next)) {
-            EmitPatchJg(terminal.next, next_bb->entrypoint);
+            EmitPatchJg(terminal.next, *next_bb);
         } else {
             EmitPatchJg(terminal.next);
         }
@@ -1160,7 +1161,7 @@ void A32EmitX64::EmitTerminalImpl(IR::Term::LinkBlock terminal, IR::LocationDesc
 
         patch_information[terminal.next].jz.emplace_back(code.getCurr());
         if (const auto next_bb = GetBasicBlock(terminal.next)) {
-            EmitPatchJz(terminal.next, next_bb->entrypoint);
+            EmitPatchJz(terminal.next, *next_bb);
         } else {
             EmitPatchJz(terminal.next);
         }
@@ -1189,7 +1190,7 @@ void A32EmitX64::EmitTerminalImpl(IR::Term::LinkBlockFast terminal, IR::Location
 
     patch_information[terminal.next].jmp.emplace_back(code.getCurr());
     if (const auto next_bb = GetBasicBlock(terminal.next)) {
-        EmitPatchJmp(terminal.next, next_bb->entrypoint);
+        EmitPatchJmp(terminal.next, *next_bb);
     } else {
         EmitPatchJmp(terminal.next);
     }

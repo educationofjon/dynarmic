@@ -28,7 +28,7 @@ Xbyak::Address ConstantPool::GetConstant(const Xbyak::AddressFrame& frame, u64 l
         ASSERT(static_cast<size_t>(current_pool_ptr - pool_begin) < pool_size);
         std::memcpy(current_pool_ptr, &lower, sizeof(u64));
         std::memcpy(current_pool_ptr + sizeof(u64), &upper, sizeof(u64));
-        iter = constant_info.emplace(constant, current_pool_ptr).first;
+        iter = constant_info.try_emplace(constant, current_pool_ptr).first;
         current_pool_ptr += align_size;
     }
     return frame[code.rip + iter->second];

@@ -10,7 +10,7 @@
 #include <set>
 #include <tuple>
 
-#include <tsl/robin_map.h>
+#include <mcl/container/hmap.hpp>
 
 #include "dynarmic/backend/x64/a32_jitstate.h"
 #include "dynarmic/backend/x64/block_range_information.h"
@@ -48,7 +48,7 @@ public:
      * Emit host machine code for a basic block with intermediate representation `block`.
      * @note block is modified.
      */
-    BlockDescriptor Emit(IR::Block& block);
+    CodePtr Emit(IR::Block& block);
 
     void ClearCache() override;
 
@@ -104,7 +104,7 @@ protected:
         DoNotFastmemMarker marker;
         bool recompile;
     };
-    tsl::robin_map<u64, FastmemPatchInfo> fastmem_patch_info;
+    mcl::hmap<u64, FastmemPatchInfo> fastmem_patch_info;
     std::set<DoNotFastmemMarker> do_not_fastmem;
     std::optional<DoNotFastmemMarker> ShouldFastmem(A32EmitContext& ctx, IR::Inst* inst) const;
     FakeCall FastmemCallback(u64 rip);

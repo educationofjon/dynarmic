@@ -8,8 +8,8 @@
 #include <bit>
 #include <utility>
 
+#include <mcl/container/hmap.hpp>
 #include <mcl/stdint.hpp>
-#include <tsl/robin_map.h>
 #include <xbyak/xbyak.h>
 
 namespace Dynarmic::Backend::X64 {
@@ -35,7 +35,7 @@ private:
         }
     };
 
-    tsl::robin_map<std::pair<u64, u64>, void*, ConstantHash> constant_info;
+    mcl::hmap<std::pair<u64, u64>, void*, ConstantHash> constant_info;
 
     BlockOfCode& code;
     size_t pool_size;

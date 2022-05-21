@@ -97,7 +97,7 @@ void AxxEmitX64::EmitMemoryRead(AxxEmitContext& ctx, IR::Inst* inst) {
 
         const auto location = EmitReadMemoryMov<bitsize>(code, value_idx, src_ptr, ordered);
 
-        fastmem_patch_info.emplace(
+        fastmem_patch_info.insert_or_assign(
             mcl::bit_cast<u64>(location),
             FastmemPatchInfo{
                 mcl::bit_cast<u64>(code.getCurr()),
@@ -177,7 +177,7 @@ void AxxEmitX64::EmitMemoryWrite(AxxEmitContext& ctx, IR::Inst* inst) {
 
         const auto location = EmitWriteMemoryMov<bitsize>(code, dest_ptr, value_idx, ordered);
 
-        fastmem_patch_info.emplace(
+        fastmem_patch_info.insert_or_assign(
             mcl::bit_cast<u64>(location),
             FastmemPatchInfo{
                 mcl::bit_cast<u64>(code.getCurr()),
@@ -351,7 +351,7 @@ void AxxEmitX64::EmitExclusiveReadMemoryInline(AxxEmitContext& ctx, IR::Inst* in
 
         const auto location = EmitReadMemoryMov<bitsize>(code, value_idx, src_ptr, ordered);
 
-        fastmem_patch_info.emplace(
+        fastmem_patch_info.insert_or_assign(
             mcl::bit_cast<u64>(location),
             FastmemPatchInfo{
                 mcl::bit_cast<u64>(code.getCurr()),
@@ -487,7 +487,7 @@ void AxxEmitX64::EmitExclusiveWriteMemoryInline(AxxEmitContext& ctx, IR::Inst* i
         code.L(abort);
         code.call(wrapped_fn);
 
-        fastmem_patch_info.emplace(
+        fastmem_patch_info.insert_or_assign(
             mcl::bit_cast<u64>(location),
             FastmemPatchInfo{
                 mcl::bit_cast<u64>(code.getCurr()),

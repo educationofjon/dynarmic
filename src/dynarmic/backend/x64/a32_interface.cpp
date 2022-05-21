@@ -149,14 +149,14 @@ private:
     }
 
     CodePtr GetCurrentBlock() {
-        return GetBasicBlock(GetCurrentLocation()).entrypoint;
+        return GetBasicBlock(GetCurrentLocation());
     }
 
     CodePtr GetCurrentSingleStep() {
-        return GetBasicBlock(A32::LocationDescriptor{GetCurrentLocation()}.SetSingleStepping(true)).entrypoint;
+        return GetBasicBlock(A32::LocationDescriptor{GetCurrentLocation()}.SetSingleStepping(true));
     }
 
-    A32EmitX64::BlockDescriptor GetBasicBlock(IR::LocationDescriptor descriptor) {
+    CodePtr GetBasicBlock(IR::LocationDescriptor descriptor) {
         auto block = emitter.GetBasicBlock(descriptor);
         if (block)
             return *block;

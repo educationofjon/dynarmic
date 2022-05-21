@@ -253,7 +253,7 @@ private:
 
     CodePtr GetBlock(IR::LocationDescriptor current_location) {
         if (auto block = emitter.GetBasicBlock(current_location))
-            return block->entrypoint;
+            return *block;
 
         constexpr size_t MINIMUM_REMAINING_CODESIZE = 1 * 1024 * 1024;
         if (block_of_code.SpaceRemaining() < MINIMUM_REMAINING_CODESIZE) {
@@ -280,7 +280,7 @@ private:
             Optimization::A64MergeInterpretBlocksPass(ir_block, conf.callbacks);
         }
         Optimization::VerificationPass(ir_block);
-        return emitter.Emit(ir_block).entrypoint;
+        return emitter.Emit(ir_block);
     }
 
     void RequestCacheInvalidation() {

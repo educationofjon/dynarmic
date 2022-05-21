@@ -48,7 +48,7 @@ EmitX64::EmitX64(BlockOfCode& code)
 
 EmitX64::~EmitX64() = default;
 
-std::optional<EmitX64::BlockDescriptor> EmitX64::GetBasicBlock(IR::LocationDescriptor descriptor) const {
+std::optional<CodePtr> EmitX64::GetBasicBlock(IR::LocationDescriptor descriptor) const {
     const auto iter = block_descriptors.find(descriptor);
     if (iter == block_descriptors.end()) {
         return std::nullopt;
@@ -82,7 +82,7 @@ void EmitX64::PushRSBHelper(Xbyak::Reg64 loc_desc_reg, Xbyak::Reg64 index_reg, I
 
     const auto iter = block_descriptors.find(target);
     CodePtr target_code_ptr = iter != block_descriptors.end()
-                                ? iter->second.entrypoint
+                                ? iter->second
                                 : code.GetReturnFromRunCodeAddress();
 
     code.mov(index_reg.cvt32(), dword[r15 + code.GetJitStateInfo().offsetof_rsb_ptr]);
@@ -274,16 +274,14 @@ Xbyak::Label EmitX64::EmitCond(IR::Cond cond) {
     return pass;
 }
 
-EmitX64::BlockDescriptor EmitX64::RegisterBlock(const IR::LocationDescriptor& descriptor, CodePtr entrypoint, CodePtr entrypoint_far, size_t size) {
+void EmitX64::RegisterBlock(const IR::LocationDescriptor& descriptor, CodePtr entrypoint, CodePtr entrypoint_far, size_t /*size*/) {
     PerfMapRegister(entrypoint, code.getCurr(), LocationDescriptorToFriendlyName(descriptor));
     code.SwitchToFarCode();
     PerfMapRegister(entrypoint_far, code.getCurr(), LocationDescriptorToFriendlyName(descriptor) + "_far");
     code.SwitchToNearCode();
     Patch(descriptor, entrypoint);
 
-    BlockDescriptor block_desc{entrypoint, size};
-    block_descriptors.emplace(descriptor.Value(), block_desc);
-    return block_desc;
+    block_descriptors.insert_or_assign(descriptor, entrypoint);
 }
 
 void EmitX64::EmitTerminal(IR::Terminal terminal, IR::LocationDescriptor initial_location, bool is_single_step) {
