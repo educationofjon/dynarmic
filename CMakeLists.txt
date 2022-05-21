@@ -68,7 +68,8 @@ if (MSVC)
         /Zc:throwingNew     # Assumes new (without std::nothrow) never returns null.
         /volatile:iso       # Use strict standard-abiding volatile semantics
         /bigobj             # Increase number of sections in .obj files
-        /DNOMINMAX)
+        /DNOMINMAX
+        /D_ENABLE_EXTENDED_ALIGNED_STORAGE)
 
     if (DYNARMIC_WARNINGS_AS_ERRORS)
         list(APPEND DYNARMIC_CXX_FLAGS
