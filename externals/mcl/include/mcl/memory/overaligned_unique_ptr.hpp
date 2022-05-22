@@ -23,8 +23,8 @@ struct aligned_alloc_deleter {
         _aligned_free(const_cast<std::remove_const_t<T>*>(p));
 #else
         std::free(const_cast<std::remove_const_t<T>*>(p));
-    }
 #endif
+    }
 };
 }  // namespace detail
 
