@@ -138,6 +138,8 @@ public:
 
 private:
     using slot_type = detail::slot_union<value_type>;
+    using slot_ptr = std::unique_ptr<slot_type[]>;
+    using meta_byte_ptr = std::unique_ptr<detail::meta_byte[], detail::std_free_deleter>;
     static_assert(!std::is_reference_v<key_type>);
     static_assert(!std::is_reference_v<mapped_type>);
 
@@ -511,8 +513,8 @@ private:
         // DEBUG_ASSERT(group_count != 0 && std::ispow2(group_count));
 
         group_index_mask = group_count - 1;
-        mbs = std::unique_ptr<detail::meta_byte*, free_deleter>{static_cast<detail::meta_byte*>(std::aligned_alloc(group_size, sizeof(detail::meta_byte) * group_count * group_size + 1))};
-        slots = std::unique_ptr<slot_type[]>{new slot_type[group_count * group_size]};
+        mbs = meta_byte_ptr{static_cast<detail::meta_byte*>(std::aligned_alloc(group_size, sizeof(detail::meta_byte) * group_count * group_size + 1))};
+        slots = slot_ptr{new slot_type[group_count * group_size]};
 
         clear_metadata();
     }
@@ -531,8 +533,8 @@ private:
     std::size_t group_index_mask;
     std::size_t empty_slots;
     std::size_t full_slots;
-    std::unique_ptr<detail::meta_byte*, free_deleter> mbs;
-    std::unique_ptr<slot_type[]> slots;
+    meta_byte_ptr mbs;
+    slot_ptr slots;
 };
 
 }  // namespace mcl
