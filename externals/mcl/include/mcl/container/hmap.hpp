@@ -16,17 +16,9 @@
 #include "mcl/container/detail/slot_union.hpp"
 #include "mcl/hash/xmrx.hpp"
 #include "mcl/hint/assume.hpp"
+#include "mcl/memory/overaligned_unique_ptr.hpp"
 
 namespace mcl {
-
-namespace detail {
-struct std_free_deleter {
-    template<typename T>
-    void operator()(T *p) const {
-        std::free(const_cast<std::remove_const_t<T>*>(p));
-    }
-};
-}  // namespace detail
 
 template<typename KeyType, typename MappedType, typename Hash, typename Pred>
 class hmap;
@@ -137,14 +129,14 @@ public:
     using const_iterator = hmap_iterator<true, key_type, mapped_type, hasher, key_equal>;
 
 private:
-    using slot_type = detail::slot_union<value_type>;
-    using slot_ptr = std::unique_ptr<slot_type[]>;
-    using meta_byte_ptr = std::unique_ptr<detail::meta_byte[], detail::std_free_deleter>;
-    static_assert(!std::is_reference_v<key_type>);
-    static_assert(!std::is_reference_v<mapped_type>);
-
     static constexpr size_t group_size{detail::meta_byte_group::max_group_size};
     static constexpr size_t average_max_group_load{group_size - 2};
+
+    using slot_type = detail::slot_union<value_type>;
+    using slot_ptr = std::unique_ptr<slot_type[]>;
+    using meta_byte_ptr = overaligned_unique_ptr<group_size, detail::meta_byte[]>;
+    static_assert(!std::is_reference_v<key_type>);
+    static_assert(!std::is_reference_v<mapped_type>);
 
 public:
     hmap()
@@ -513,7 +505,7 @@ private:
         // DEBUG_ASSERT(group_count != 0 && std::ispow2(group_count));
 
         group_index_mask = group_count - 1;
-        mbs = meta_byte_ptr{static_cast<detail::meta_byte*>(std::aligned_alloc(group_size, sizeof(detail::meta_byte) * group_count * group_size + 1))};
+        mbs = make_overaligned_unique_ptr_array<group_size, detail::meta_byte>(group_count * group_size + 1);
         slots = slot_ptr{new slot_type[group_count * group_size]};
 
         clear_metadata();
