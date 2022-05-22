@@ -18,6 +18,16 @@
 #include "mcl/hint/assume.hpp"
 
 namespace mcl {
+
+namespace detail {
+struct std_free_deleter {
+    template<typename T>
+    void operator()(T *p) const {
+        std::free(const_cast<std::remove_const_t<T>*>(p));
+    }
+};
+}  // namespace detail
+
 template<typename KeyType, typename MappedType, typename Hash, typename Pred>
 class hmap;
 
@@ -501,7 +511,7 @@ private:
         // DEBUG_ASSERT(group_count != 0 && std::ispow2(group_count));
 
         group_index_mask = group_count - 1;
-        mbs = std::unique_ptr<detail::meta_byte[]>{new (std::align_val_t(group_size)) detail::meta_byte[group_count * group_size + 1]};
+        mbs = std::unique_ptr<detail::meta_byte*, free_deleter>{static_cast<detail::meta_byte*>(std::aligned_alloc(group_size, sizeof(detail::meta_byte) * group_count * group_size + 1))};
         slots = std::unique_ptr<slot_type[]>{new slot_type[group_count * group_size]};
 
         clear_metadata();
@@ -521,7 +531,7 @@ private:
     std::size_t group_index_mask;
     std::size_t empty_slots;
     std::size_t full_slots;
-    std::unique_ptr<detail::meta_byte[]> mbs;
+    std::unique_ptr<detail::meta_byte*, free_deleter> mbs;
     std::unique_ptr<slot_type[]> slots;
 };
 
