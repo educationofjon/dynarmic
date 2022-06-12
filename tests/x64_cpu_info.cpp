@@ -22,7 +22,7 @@ TEST_CASE("Host CPU supports", "[a64]") {
 
     cpu_info.putFamily();
     const std::array types{
-#define X(NAME) std::make_pair(Cpu::Type{Cpu::NAME}, &#NAME[1])
+#define X(NAME) std::make_pair(cpu_info.has(Cpu::NAME), &#NAME[1])
         X(t3DN),
         X(tADX),
         X(tAESNI),
@@ -98,8 +98,8 @@ TEST_CASE("Host CPU supports", "[a64]") {
 
     constexpr size_t line_max = 80;
     size_t line_length = 0;
-    for (const auto& [type, name] : types) {
-        if (cpu_info.has(type)) {
+    for (const auto [has, name] : types) {
+        if (has) {
             const size_t name_length = std::strlen(name) + 1;
             if ((line_length + name_length) >= line_max) {
                 line_length = name_length;
